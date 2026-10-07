@@ -18,24 +18,6 @@ def _prepare_image(image: Image.Image) -> Image.Image:
     return grayscale.filter(ImageFilter.SHARPEN)
 
 
-def _normalize_ocr_data(data: dict) -> tuple[list[str], list[float]]:
-    words: list[str] = []
-    confidences: list[float] = []
-    for word, confidence in zip(data.get("text", []), data.get("conf", [])):
-        text = str(word).strip()
-        confidence_text = str(confidence).strip()
-        if not text or confidence_text in {"", "-1"}:
-            continue
-        try:
-            numeric_confidence = float(confidence_text)
-        except (TypeError, ValueError):
-            continue
-        if numeric_confidence >= 0:
-            words.append(text)
-            confidences.append(numeric_confidence)
-    return words, confidences
-
-
 def _ocr_with_psm(processed: Image.Image, psm: int) -> tuple[str, float]:
     data = pytesseract.image_to_data(
         processed,
@@ -43,8 +25,17 @@ def _ocr_with_psm(processed: Image.Image, psm: int) -> tuple[str, float]:
         config=f"--psm {psm}",
         output_type=pytesseract.Output.DICT,
     )
-    words, confidences = _normalize_ocr_data(data)
-    text = " ".join(words).strip()
+    words = [
+        word
+        for word, text in zip(data["text"], data["conf"])
+        if text.strip() and word.strip()
+    ]
+    confidences = [
+        float(value)
+        for value in data["conf"]
+        if value != "-1" and value.strip()
+    ]
+    text = " ".join(word for word in words).strip()
     average_confidence = sum(confidences) / len(confidences) if confidences else 0.0
     return text, average_confidence
 

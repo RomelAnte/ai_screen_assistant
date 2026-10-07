@@ -1,106 +1,419 @@
 # AI Screen Assistant
 
-Asistente de escritorio para Windows que analiza la pantalla con un modelo de visión local y presenta una respuesta explicada.
+Asistente de escritorio local para estudiar y practicar con contenido visible en pantalla.
 
-## Problema
+AI Screen Assistant permite capturar la pantalla mediante un atajo global y enviar la imagen a un modelo de visión ejecutado localmente con [Ollama](https://ollama.com/). El modelo identifica el ejercicio o pregunta principal y genera una respuesta acompañada de una explicación.
 
-Al estudiar o trabajar frente a la computadora, explicar una pregunta que aparece en pantalla suele requerir copiarla manualmente a otra herramienta. Esto interrumpe el flujo y puede ser incómodo cuando el contenido incluye imágenes, fórmulas o código.
+El procesamiento de la imagen se realiza localmente mediante Ollama. No necesitas enviar capturas a una API de IA en la nube.
 
-## Objetivo
+> **Estado:** prototipo funcional para Windows.
 
-Crear una aplicación de escritorio que permita pedir ayuda sobre el contenido visible, enviando la captura a un modelo local de Ollama y mostrando una respuesta, una explicación y, cuando corresponda, código.
+## ¿Para qué sirve?
 
-## Stack
+Está pensado para:
 
-- **Python 3.10+** — lógica de la aplicación.
-- **PySide6** — interfaz de escritorio.
-- **MSS y Pillow** — captura y preparación de imágenes.
-- **Ollama** — ejecución local del modelo multimodal.
-- **Requests** — comunicación con la API local de Ollama.
-- **Keyboard** — atajos globales.
-- **Tesseract OCR / pytesseract** — utilidades OCR disponibles en el proyecto.
+- estudiar con cuestionarios propios;
+- practicar con bancos de preguntas;
+- analizar ejercicios de programación;
+- resolver problemas matemáticos;
+- comprender preguntas mostradas en pantalla;
+- recibir explicaciones sobre conceptos;
+- trabajar con contenido que combine texto, imágenes, fórmulas o código.
 
-## Arquitectura
+El objetivo no es solamente obtener una respuesta, sino utilizar la IA como apoyo para comprender el problema.
+
+## ¿Cómo funciona?
+
+El flujo principal es:
 
 ```text
-Atajo global (F8)
-       │
-       ▼
-Controlador y worker en segundo plano (main.py)
-       │
-       ├── Captura de pantalla (screen_capture.py)
-       ├── Cliente de Ollama y codificación de imagen (ollama_client.py)
-       ├── Configuración y prompt (config.py)
-       └── Parseo de respuesta (response_parser.py)
-                    │
-                    ▼
-             Ventana PySide6 (ui/)
+                Presionar F8
+                     │
+                     ▼
+              Captura de pantalla
+                     │
+                     ▼
+            Redimensionamiento
+                     │
+                     ▼
+              Imagen en Base64
+                     │
+                     ▼
+          API local de Ollama
+                     │
+                     ▼
+       Modelo multimodal de visión
+                     │
+                     ▼
+             Respuesta en español
+                     │
+                     ▼
+             Parser de respuesta
+                     │
+                     ▼
+              Ventana PySide6
 ```
 
-La captura se procesa localmente y se envía a la instancia local de Ollama configurada en `config.py`. El modelo y sus requisitos de hardware dependen de Ollama.
+El modelo recibe la captura y determina qué contenido es relevante. No es necesario copiar manualmente la pregunta ni utilizar OCR para el flujo principal.
 
-## Funcionalidades
+## Características
 
-- Captura la pantalla principal mediante el atajo global `F8`.
-- Consulta una instancia local de Ollama con una imagen y un prompt de tutor en español.
-- Presenta la respuesta, explicación y código en una ventana de escritorio.
-- Permite copiar la respuesta y el código.
-- Incluye una interfaz de selección de región disponible desde el controlador interno.
+- Atajo global `F8`.
+- Captura de pantalla mediante MSS.
+- Redimensionamiento de imágenes para reducir el tiempo de procesamiento.
+- Análisis mediante modelo multimodal local.
+- Integración con Ollama.
+- Respuestas en español.
+- Explicación del procedimiento.
+- Soporte para preguntas de opción múltiple.
+- Análisis de ejercicios matemáticos.
+- Análisis de código.
+- Ventana de respuesta siempre visible.
+- Copia rápida de respuesta y código.
+- Arquitectura preparada para incorporar selección de regiones.
+- Sin dependencia de una API de IA en la nube.
 
-## Estado actual
+## Modelo de IA
 
-Prototipo funcional para Windows. Requiere instalar Python, Ollama, un modelo de visión compatible y Tesseract OCR. El atajo `F8` captura la pantalla principal; la selección manual aún no está conectada al flujo principal del atajo. La configuración del modelo está en `config.py`.
+La configuración inicial utiliza:
 
-## Capturas
+```text
+qwen2.5vl:7b
+```
 
-No hay capturas: la interfaz actual muestra la respuesta en un cuadro de mensaje de PySide6 y todavía no cuenta con una ventana visual propia que necesite documentarse con imágenes.
+También se pueden probar modelos multimodales más pequeños si el hardware disponible requiere menor consumo de recursos.
 
-## Cómo ejecutarlo
+La aplicación se comunica con la instancia local de Ollama mediante:
 
-### Requisitos
+```text
+http://localhost:11434/api/generate
+```
 
-- Windows 10/11 de 64 bits.
-- Python 3.10 o superior.
-- [Ollama](https://ollama.com/) instalado y en ejecución.
-- Un modelo multimodal compatible con Ollama. La configuración inicial usa `qwen2.5vl:7b`.
-- Tesseract OCR instalado y accesible desde PATH o en una ruta habitual.
+El modelo puede cambiarse desde `config.py`.
 
-### Instalación en PowerShell
+```python
+OLLAMA_MODEL = "qwen2.5vl:7b"
+```
+
+## Requisitos
+
+### Actualmente soportado
+
+- Windows 10/11
+- Python 3.10+
+- Ollama
+- Un modelo multimodal compatible
+- CPU/GPU suficiente para ejecutar el modelo seleccionado
+
+### No requiere actualmente
+
+- Cuenta de OpenAI
+- API key
+- API de terceros
+- Conexión a un servicio de IA en la nube
+
+La velocidad depende principalmente del hardware disponible y del modelo utilizado.
+
+## Instalación
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/RomelAnte/ai_screen_assistant.git
+cd ai_screen_assistant
+```
+
+### 2. Crear el entorno virtual
+
+En Windows:
 
 ```powershell
-git clone https://github.com/USUARIO/ai-screen-assistant.git
-cd ai-screen-assistant
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-ollama pull qwen2.5vl:7b
 ```
 
-Si PowerShell impide activar el entorno, permite la ejecución solo en la sesión actual y vuelve a activarlo:
+Activar:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+Si PowerShell bloquea la activación:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+
+y después:
+
+```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
-Instala Tesseract OCR por separado si todavía no está disponible. Luego, con Ollama en ejecución:
+### 3. Instalar dependencias
 
-```powershell
+```bash
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### 4. Instalar Ollama
+
+Instala Ollama desde su sitio oficial:
+
+https://ollama.com/
+
+Comprueba que esté funcionando:
+
+```bash
+ollama --version
+```
+
+### 5. Descargar el modelo
+
+Por defecto:
+
+```bash
+ollama pull qwen2.5vl:7b
+```
+
+También puedes utilizar otro modelo multimodal compatible y modificar:
+
+```python
+OLLAMA_MODEL = "nombre-del-modelo"
+```
+
+en `config.py`.
+
+### 6. Ejecutar
+
+```bash
 python main.py
 ```
 
-Pulsa `F8` para analizar la pantalla principal. Cambia `OLLAMA_MODEL` en `config.py` si quieres usar otro modelo de visión compatible. La pantalla puede contener información privada: revisa lo que está visible antes de activar la captura.
+La aplicación permanecerá ejecutándose en segundo plano.
+
+Presiona:
+
+```text
+F8
+```
+
+para analizar la pantalla.
+
+## Ejemplo de uso
+
+1. Abre un cuestionario, ejercicio o problema.
+2. Asegúrate de que el contenido que quieres analizar sea visible.
+3. Presiona `F8`.
+4. AI Screen Assistant captura la pantalla.
+5. Ollama analiza la imagen.
+6. La aplicación muestra:
+
+```text
+RESPUESTA:
+...
+
+EXPLICACIÓN:
+...
+
+CÓDIGO:
+...
+```
+
+El formato puede variar dependiendo del contenido analizado.
+
+## Arquitectura
+
+El proyecto está dividido en componentes pequeños:
+
+```text
+ai_screen_assistant/
+│
+├── main.py
+├── config.py
+├── ollama_client.py
+├── screen_capture.py
+├── response_parser.py
+├── requirements.txt
+│
+├── ui/
+│   ├── response_window.py
+│   ├── selection_window.py
+│   └── __init__.py
+│
+├── tests/
+│   ├── test_app_components.py
+│   └── __init__.py
+│
+├── CONTRIBUTING.md
+├── LICENSE
+└── README.md
+```
+
+### `main.py`
+
+Controla el ciclo principal de la aplicación, el hotkey global y el trabajo en segundo plano.
+
+### `config.py`
+
+Centraliza:
+
+- modelo de Ollama;
+- URL de la API;
+- tamaño máximo de imagen;
+- hotkey;
+- dimensiones de la interfaz;
+- timeout;
+- prompt del modelo.
+
+### `screen_capture.py`
+
+Se encarga de obtener la captura de pantalla y prepararla para el procesamiento.
+
+### `ollama_client.py`
+
+Gestiona la comunicación con la API local de Ollama y el envío de la imagen al modelo.
+
+### `response_parser.py`
+
+Separa la respuesta generada por el modelo en:
+
+- respuesta;
+- explicación;
+- código.
+
+### `ui/`
+
+Contiene las interfaces de PySide6.
+
+### `tests/`
+
+Contiene pruebas de componentes del proyecto.
+
+## Privacidad
+
+AI Screen Assistant utiliza un modelo ejecutado localmente mediante Ollama.
+
+La aplicación captura la pantalla cuando se activa el análisis y envía esa imagen a la instancia local de Ollama.
+
+Por defecto:
+
+```text
+Aplicación
+    ↓
+Captura
+    ↓
+Ollama local
+    ↓
+Modelo local
+    ↓
+Respuesta
+```
+
+No se necesita enviar la captura a un servidor externo de IA.
+
+Aun así, debes tener cuidado con la información visible en pantalla. No captures información sensible que no quieras procesar.
+
+## Uso responsable
+
+AI Screen Assistant fue creado como herramienta de estudio y práctica.
+
+Está pensado para:
+
+- aprender;
+- practicar;
+- comprender errores;
+- estudiar cuestionarios;
+- experimentar con modelos multimodales locales.
+
+No está diseñado específicamente para utilizarse durante evaluaciones calificadas, exámenes o actividades donde el uso de asistencia externa esté prohibido.
+
+El usuario es responsable de utilizar la herramienta respetando las reglas de cada actividad.
+
+## Rendimiento
+
+El análisis mediante modelos de visión local puede ser considerablemente más lento que utilizar una API remota optimizada.
+
+El tiempo de respuesta depende principalmente de:
+
+- CPU;
+- GPU;
+- memoria disponible;
+- tamaño del modelo;
+- tamaño de la imagen;
+- configuración de Ollama.
+
+Actualmente el proyecto reduce el tamaño de la captura antes de enviarla al modelo:
+
+```python
+MAX_IMAGE_SIDE = 1600
+```
+
+La optimización del rendimiento es una de las prioridades del roadmap.
 
 ## Roadmap
 
-- [ ] Conectar la selección de región al flujo de captura principal.
-- [ ] Permitir configurar modelo y dirección de Ollama desde la interfaz o variables de entorno.
-- [ ] Añadir instrucciones para otros sistemas operativos.
-- [ ] Mejorar la gestión de errores y el estado de las consultas en la interfaz.
-- [ ] Publicar capturas de pantalla preparadas para compartir.
-- [ ] Automatizar comprobaciones básicas del proyecto en GitHub Actions.
+### Próximamente
+
+- [ ] Reducir el tiempo de respuesta.
+- [ ] Probar modelos de visión más pequeños.
+- [ ] Utilizar `keep_alive` para evitar recargas innecesarias del modelo.
+- [ ] Conectar el selector de región al flujo principal.
+- [ ] Permitir analizar únicamente una zona de la pantalla.
+- [ ] Guardar historial de preguntas.
+- [ ] Marcar preguntas incorrectas para repasarlas.
+- [ ] Generar quizzes de práctica a partir de apuntes.
+- [ ] Mejorar la gestión de errores.
+- [ ] Configurar modelo y servidor desde la interfaz.
+- [ ] Crear ejecutable para Windows.
+- [ ] Automatizar pruebas mediante GitHub Actions.
+
+### Soporte multiplataforma
+
+El objetivo a medio plazo es llevar AI Screen Assistant a:
+
+| Plataforma | Estado |
+|---|---|
+| Windows | Disponible |
+| Linux | Planeado |
+| macOS | Planeado |
+
+La interfaz está construida con PySide6, por lo que puede reutilizarse entre sistemas operativos. Sin embargo, la captura de pantalla y los atajos globales requieren adaptación y pruebas específicas para cada plataforma.
+
+El objetivo no es simplemente cambiar el sistema operativo declarado como compatible, sino conseguir un comportamiento equivalente en cada plataforma.
+
+## Contribuir
+
+Las contribuciones son bienvenidas.
+
+Puedes:
+
+- reportar errores;
+- proponer funcionalidades;
+- mejorar la documentación;
+- optimizar el procesamiento;
+- añadir soporte para nuevos sistemas operativos;
+- añadir pruebas;
+- mejorar la integración con modelos locales.
+
+Consulta `CONTRIBUTING.md` antes de realizar cambios importantes.
 
 ## Licencia
 
-Este proyecto se distribuye bajo la licencia MIT. Consulta [LICENSE](LICENSE).
+Este proyecto se distribuye bajo la licencia MIT.
+
+Consulta [`LICENSE`](LICENSE) para más información.
+
+## Autor
+
+**Romel Ante**
+
+Ingeniero en Sistemas de Información.
+
+GitHub: [@RomelAnte](https://github.com/RomelAnte)
+
+---
+
+### Nota
+
+Este proyecto se encuentra en desarrollo. Algunas funcionalidades descritas en el roadmap todavía no están implementadas.
