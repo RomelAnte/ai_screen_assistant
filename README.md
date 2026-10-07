@@ -53,11 +53,7 @@ Prototipo funcional para Windows. Requiere instalar Python, Ollama, un modelo de
 
 ## Capturas
 
-Aún no hay capturas de la interfaz preparadas para publicación. Para añadirlas, guarda imágenes sin datos personales en `docs/images/` y enlázalas aquí. Por ejemplo:
-
-```markdown
-![Ventana de respuesta](docs/images/response-window.png)
-```
+No hay capturas: la interfaz actual muestra la respuesta en un cuadro de mensaje de PySide6 y todavía no cuenta con una ventana visual propia que necesite documentarse con imágenes.
 
 ## Cómo ejecutarlo
 
