@@ -44,6 +44,8 @@ class AssistantWorker(QObject):
                 parsed["code"],
             )
         except Exception as exc:
+            import traceback
+            traceback.print_exc()
             self.error.emit(str(exc))
 
 
